@@ -1,2 +1,5 @@
 # Large audio emotion dataset (~1.8 GB) — keep it out of git.
 Emotions/
+
+# macOS junk
+.DS_Store
