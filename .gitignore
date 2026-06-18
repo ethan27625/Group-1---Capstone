@@ -1,0 +1,51 @@
+# Ignore dataset directories (adjust names to your layout)
+data/
+datasets/
+raw_data/
+processed_data/
+Dataset/
+
+# Audio files (large)
+*.wav
+*.mp3
+*.flac
+*.aac
+*.ogg
+*.m4a
+
+# Large dataset files
+*.csv
+*.tsv
+*.parquet
+*.h5
+*.hdf5
+*.npz
+*.npy
+*.sqlite
+*.db
+
+# Feature cache / saved artifacts
+data/features.parquet
+data/*.npz
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Python caches and virtualenvs
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+env/
+venv/
+.venv/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Editor/temp files
+*.swp
+*~
