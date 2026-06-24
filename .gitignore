@@ -1,5 +1,19 @@
 # Large audio emotion dataset (~1.8 GB) — keep it out of git.
 Emotions/
+Emotions_processed/
+Emotions_w2v2_16k/
+
+# Model weights — download from HF Hub or Colab
+Notebooks/w2v2_ser_best/
+*.keras
+*.pt
+*.npz
 
 # macOS junk
 .DS_Store
+
+# Local secrets (never commit)
+.env
+
+# Claude internal
+.claude/

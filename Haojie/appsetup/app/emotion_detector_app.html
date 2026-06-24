@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Emotion Detector</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0d0d14;
+    color: #e8e8f0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #a89cf7;
+    margin-bottom: 0.4rem;
+  }
+
+  .subtitle {
+    font-size: 0.82rem;
+    color: #5c5c7a;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 2.5rem;
+  }
+
+  .card {
+    background: #13131f;
+    border: 1px solid #1e1e32;
+    border-radius: 20px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  /* EMOJI GRID */
+  .emoji-grid {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .emoji-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: #1a1a2e;
+    border: 1px solid #22223a;
+    transition: border-color 0.3s, background 0.3s, transform 0.3s;
+    min-width: 68px;
+  }
+
+  .emoji-chip .icon { font-size: 1.8rem; line-height: 1; }
+  .emoji-chip .label {
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #4a4a6a;
+    transition: color 0.3s;
+  }
+
+  /* ANALYZING PULSE — zoom in/out on each emoji */
+  .analyzing .emoji-chip {
+    animation: emojiPulse 1.4s ease-in-out infinite;
+  }
+  .analyzing .emoji-chip:nth-child(1) { animation-delay: 0s; }
+  .analyzing .emoji-chip:nth-child(2) { animation-delay: 0.2s; }
+  .analyzing .emoji-chip:nth-child(3) { animation-delay: 0.4s; }
+  .analyzing .emoji-chip:nth-child(4) { animation-delay: 0.6s; }
+  .analyzing .emoji-chip:nth-child(5) { animation-delay: 0.8s; }
+  .analyzing .emoji-chip:nth-child(6) { animation-delay: 1.0s; }
+
+  @keyframes emojiPulse {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.25); border-color: #a89cf7; }
+    100% { transform: scale(1); }
+  }
+
+  /* RESULT highlight */
+  .emoji-chip.winner {
+    background: #1e1638;
+    border-color: #a89cf7;
+    transform: scale(1.15);
+  }
+  .emoji-chip.winner .label { color: #a89cf7; }
+
+  /* VISUALIZER */
+  .visualizer-wrap {
+    width: 100%;
+    height: 64px;
+    border-radius: 12px;
+    background: #0d0d14;
+    overflow: hidden;
+    position: relative;
+  }
+  #visualizer {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* TIMER */
+  .timer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .timer-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #3a3a58;
+  }
+  .timer-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: #a89cf7;
+    min-width: 42px;
+    text-align: right;
+  }
+  .timer-bar-track {
+    flex: 1;
+    height: 4px;
+    background: #1e1e32;
+    border-radius: 2px;
+    margin: 0 12px;
+    overflow: hidden;
+  }
+  .timer-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: #a89cf7;
+    width: 0%;
+    transition: width 0.25s linear, background 0.3s;
+  }
+  .timer-bar-fill.warning { background: #f7c948; }
+  .timer-bar-fill.maxed  { background: #e05c5c; }
+
+  /* RECORD BUTTON */
+  .rec-btn {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 2px solid #a89cf7;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.15s;
+    position: relative;
+    outline: none;
+  }
+  .rec-btn:hover { background: #1e1638; transform: scale(1.05); }
+  .rec-btn:active { transform: scale(0.97); }
+
+  .rec-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #a89cf7;
+    transition: border-radius 0.25s, background 0.25s, transform 0.25s;
+  }
+  .rec-btn.recording .rec-dot {
+    border-radius: 5px;
+    background: #e05c5c;
+    transform: scale(0.85);
+  }
+  .rec-btn.recording { border-color: #e05c5c; }
+
+  /* PULSE RING while recording */
+  @keyframes ring {
+    0%   { box-shadow: 0 0 0 0px rgba(224,92,92,0.5); }
+    100% { box-shadow: 0 0 0 18px rgba(224,92,92,0); }
+  }
+  .rec-btn.recording { animation: ring 1.2s ease-out infinite; }
+
+  .btn-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #5c5c7a;
+    margin-top: 0.3rem;
+  }
+
+  /* STATUS MESSAGE */
+  .status {
+    font-size: 0.8rem;
+    color: #5c5c7a;
+    letter-spacing: 0.06em;
+    text-align: center;
+    min-height: 1.2em;
+    transition: color 0.3s;
+  }
+  .status.ok  { color: #6ecf97; }
+  .status.err { color: #e05c5c; }
+  .status.info { color: #a89cf7; }
+
+  /* RESULT BANNER */
+  .result-banner {
+    width: 100%;
+    border-radius: 14px;
+    background: #1a1a2e;
+    border: 1px solid #22223a;
+    padding: 1rem 1.25rem;
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .result-banner.show { display: flex; }
+
+  .result-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .result-big-emoji { font-size: 2.4rem; }
+  .result-texts { display: flex; flex-direction: column; }
+  .result-emotion {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #e8e8f0;
+    text-transform: capitalize;
+  }
+  .result-conf {
+    font-size: 0.75rem;
+    color: #5c5c7a;
+    letter-spacing: 0.06em;
+  }
+
+  .conf-bar-track {
+    width: 100%;
+    height: 5px;
+    background: #0d0d14;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .conf-bar-fill {
+    height: 100%;
+    background: #a89cf7;
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.6s ease;
+  }
+
+  /* INSTRUCTIONS */
+  .instructions {
+    font-size: 0.72rem;
+    color: #3a3a58;
+    text-align: center;
+    line-height: 1.6;
+    letter-spacing: 0.03em;
+  }
+
+  /* MODEL ENDPOINT NOTE */
+  .endpoint-row {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .endpoint-row input {
+    flex: 1;
+    background: #0d0d14;
+    border: 1px solid #1e1e32;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    color: #a89cf7;
+    font-family: monospace;
+    outline: none;
+  }
+  .endpoint-row input:focus { border-color: #a89cf7; }
+  .endpoint-row label {
+    font-size: 0.65rem;
+    color: #3a3a58;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<h1>Emotion Detector</h1>
+<p class="subtitle">Voice · CNN · Real-time</p>
+
+<div class="card">
+
+  <!-- EMOJI GRID -->
+  <div class="emoji-grid" id="emojiGrid">
+    <div class="emoji-chip" data-emotion="angry">
+      <span class="icon">😠</span>
+      <span class="label">Angry</span>
+    </div>
+    <div class="emoji-chip" data-emotion="disgusted">
+      <span class="icon">🤢</span>
+      <span class="label">Disgusted</span>
+    </div>
+    <div class="emoji-chip" data-emotion="fearful">
+      <span class="icon">😨</span>
+      <span class="label">Fearful</span>
+    </div>
+    <div class="emoji-chip" data-emotion="happy">
+      <span class="icon">😄</span>
+      <span class="label">Happy</span>
+    </div>
+    <div class="emoji-chip" data-emotion="neutral">
+      <span class="icon">😐</span>
+      <span class="label">Neutral</span>
+    </div>
+    <div class="emoji-chip" data-emotion="sad">
+      <span class="icon">😢</span>
+      <span class="label">Sad</span>
+    </div>
+  </div>
+
+  <!-- WAVEFORM VISUALIZER -->
+  <div class="visualizer-wrap">
+    <canvas id="visualizer"></canvas>
+  </div>
+
+  <!-- TIMER BAR -->
+  <div class="timer-row">
+    <span class="timer-label">Duration</span>
+    <div class="timer-bar-track">
+      <div class="timer-bar-fill" id="timerFill"></div>
+    </div>
+    <span class="timer-value" id="timerVal">0.0s</span>
+  </div>
+
+  <!-- RECORD BUTTON -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+    <button class="rec-btn" id="recBtn" aria-label="Record">
+      <div class="rec-dot"></div>
+    </button>
+    <span class="btn-label" id="btnLabel">Hold to record</span>
+  </div>
+
+  <!-- STATUS -->
+  <p class="status" id="status">Press and hold to start recording</p>
+
+  <!-- RESULT BANNER -->
+  <div class="result-banner" id="resultBanner">
+    <div class="result-top">
+      <span class="result-big-emoji" id="resultEmoji"></span>
+      <div class="result-texts">
+        <span class="result-emotion" id="resultEmotion"></span>
+        <span class="result-conf" id="resultConf"></span>
+      </div>
+    </div>
+    <div class="conf-bar-track">
+      <div class="conf-bar-fill" id="confFill"></div>
+    </div>
+  </div>
+
+  <!-- MODEL ENDPOINT -->
+  <div class="endpoint-row">
+    <label>API Endpoint</label>
+    <input type="text" id="endpointInput" placeholder="http://localhost:5000/predict" value="http://localhost:5000/predict" />
+  </div>
+
+  <p class="instructions">
+    Hold the button · speak clearly · release to analyze<br>
+    Min 1 s · Max 5 s · WAV 16 kHz mono sent to your model
+  </p>
+
+</div>
+
+<script>
+const MIN_SEC = 1;
+const MAX_SEC = 5;
+
+const recBtn      = document.getElementById('recBtn');
+const btnLabel    = document.getElementById('btnLabel');
+const statusEl    = document.getElementById('status');
+const timerFill   = document.getElementById('timerFill');
+const timerVal    = document.getElementById('timerVal');
+const emojiGrid   = document.getElementById('emojiGrid');
+const resultBanner = document.getElementById('resultBanner');
+const resultEmoji  = document.getElementById('resultEmoji');
+const resultEmotion = document.getElementById('resultEmotion');
+const resultConf   = document.getElementById('resultConf');
+const confFill    = document.getElementById('confFill');
+const canvas      = document.getElementById('visualizer');
+const ctx         = canvas.getContext('2d');
+const endpointInput = document.getElementById('endpointInput');
+
+const EMOTIONS = {
+  angry:     '😠',
+  disgusted: '🤢',
+  fearful:   '😨',
+  happy:     '😄',
+  neutral:   '😐',
+  sad:       '😢',
+};
+
+let mediaRecorder = null;
+let audioCtx = null;
+let analyser = null;
+let animFrame = null;
+let chunks = [];
+let startTime = null;
+let timerInterval = null;
+let recording = false;
+let stream = null;
+
+function resizeCanvas() {
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function drawIdle() {
+  resizeCanvas();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = '#2a2a40';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, canvas.height / 2);
+  ctx.lineTo(canvas.width, canvas.height / 2);
+  ctx.stroke();
+}
+drawIdle();
+
+function drawWaveform() {
+  animFrame = requestAnimationFrame(drawWaveform);
+  resizeCanvas();
+  const W = canvas.width, H = canvas.height;
+  const bufLen = analyser.frequencyBinCount;
+  const data = new Uint8Array(bufLen);
+  analyser.getByteTimeDomainData(data);
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = '#a89cf7';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  const step = W / bufLen;
+  for (let i = 0; i < bufLen; i++) {
+    const v = data[i] / 128.0;
+    const y = (v * H) / 2;
+    i === 0 ? ctx.moveTo(i * step, y) : ctx.lineTo(i * step, y);
+  }
+  ctx.stroke();
+}
+
+function setStatus(msg, cls = '') {
+  statusEl.textContent = msg;
+  statusEl.className = 'status ' + cls;
+}
+
+function startTimer() {
+  startTime = Date.now();
+  timerInterval = setInterval(() => {
+    const elapsed = (Date.now() - startTime) / 1000;
+    const pct = Math.min((elapsed / MAX_SEC) * 100, 100);
+    timerFill.style.width = pct + '%';
+    timerFill.className = 'timer-bar-fill' + (elapsed >= MAX_SEC ? ' maxed' : elapsed >= 3 ? ' warning' : '');
+    timerVal.textContent = elapsed.toFixed(1) + 's';
+    if (elapsed >= MAX_SEC) stopRecording();
+  }, 80);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+}
+
+async function startRecording() {
+  if (recording) return;
+  clearResult();
+
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (e) {
+    setStatus('Microphone access denied', 'err');
+    return;
+  }
+
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+  const source = audioCtx.createMediaStreamSource(stream);
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 1024;
+  source.connect(analyser);
+  drawWaveform();
+
+  chunks = [];
+  mediaRecorder = new MediaRecorder(stream);
+  mediaRecorder.ondataavailable = e => chunks.push(e.data);
+  mediaRecorder.onstop = onRecordingStop;
+  mediaRecorder.start();
+
+  recording = true;
+  recBtn.classList.add('recording');
+  btnLabel.textContent = 'Release to analyze';
+  setStatus('Recording… speak now', 'info');
+  startTimer();
+}
+
+function stopRecording() {
+  if (!recording) return;
+  const elapsed = (Date.now() - startTime) / 1000;
+  stopTimer();
+
+  if (elapsed < MIN_SEC) {
+    mediaRecorder.stop();
+    stream.getTracks().forEach(t => t.stop());
+    cancelAnimationFrame(animFrame);
+    drawIdle();
+    recording = false;
+    recBtn.classList.remove('recording');
+    btnLabel.textContent = 'Hold to record';
+    timerFill.style.width = '0%';
+    timerVal.textContent = '0.0s';
+    setStatus(`Too short — hold for at least ${MIN_SEC}s`, 'err');
+    return;
+  }
+
+  mediaRecorder.stop();
+  stream.getTracks().forEach(t => t.stop());
+  cancelAnimationFrame(animFrame);
+  recording = false;
+  recBtn.classList.remove('recording');
+  btnLabel.textContent = 'Analyzing…';
+  setStatus('Analyzing your voice…', 'info');
+  startAnalyzingAnimation();
+}
+
+function startAnalyzingAnimation() {
+  emojiGrid.classList.add('analyzing');
+}
+function stopAnalyzingAnimation() {
+  emojiGrid.classList.remove('analyzing');
+}
+
+async function onRecordingStop() {
+  const blob = new Blob(chunks, { type: 'audio/webm' });
+  const wavBlob = await convertToWav(blob);
+  await sendToModel(wavBlob);
+}
+
+async function sendToModel(wavBlob) {
+  const endpoint = endpointInput.value.trim() || 'http://localhost:5000/predict';
+  const formData = new FormData();
+  formData.append('audio', wavBlob, 'recording.wav');
+
+  try {
+    const res = await fetch(endpoint, { method: 'POST', body: formData });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    // Expected: { emotion: "happy", confidence: 0.92 }
+    showResult(data.emotion, data.confidence);
+  } catch (e) {
+    stopAnalyzingAnimation();
+    drawIdle();
+    btnLabel.textContent = 'Hold to record';
+    timerFill.style.width = '0%';
+    timerVal.textContent = '0.0s';
+
+    // DEMO FALLBACK — shows a fake result so you can see the UI
+    const emotions = Object.keys(EMOTIONS);
+    const fakeEmotion = emotions[Math.floor(Math.random() * emotions.length)];
+    const fakeConf = 0.65 + Math.random() * 0.3;
+    setStatus(`Model offline — showing demo result`, 'err');
+    setTimeout(() => showResult(fakeEmotion, fakeConf, true), 400);
+  }
+}
+
+function showResult(emotion, confidence, isDemo = false) {
+  stopAnalyzingAnimation();
+  drawIdle();
+  btnLabel.textContent = 'Hold to record';
+  timerFill.style.width = '0%';
+  timerVal.textContent = '0.0s';
+
+  const emoji = EMOTIONS[emotion.toLowerCase()] || '🎭';
+  resultEmoji.textContent = emoji;
+  resultEmotion.textContent = emotion.charAt(0).toUpperCase() + emotion.slice(1);
+  const pct = Math.round((confidence || 0) * 100);
+  resultConf.textContent = `Confidence: ${pct}%` + (isDemo ? ' (demo)' : '');
+  resultBanner.classList.add('show');
+
+  setTimeout(() => {
+    confFill.style.width = pct + '%';
+  }, 80);
+
+  document.querySelectorAll('.emoji-chip').forEach(chip => {
+    chip.classList.remove('winner');
+    if (chip.dataset.emotion === emotion.toLowerCase()) {
+      chip.classList.add('winner');
+    }
+  });
+
+  if (!isDemo) setStatus('Done! Press and hold to try again.', 'ok');
+}
+
+function clearResult() {
+  resultBanner.classList.remove('show');
+  confFill.style.width = '0%';
+  document.querySelectorAll('.emoji-chip').forEach(c => c.classList.remove('winner'));
+}
+
+// ---- WAV conversion ----
+async function convertToWav(blob) {
+  const arrayBuffer = await blob.arrayBuffer();
+  const tmpCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+  const decoded = await tmpCtx.decodeAudioData(arrayBuffer);
+  const samples = decoded.getChannelData(0);
+  return encodeWAV(samples, 16000);
+}
+
+function encodeWAV(samples, sampleRate) {
+  const buf = new ArrayBuffer(44 + samples.length * 2);
+  const view = new DataView(buf);
+  function w(off, str) { for (let i = 0; i < str.length; i++) view.setUint8(off + i, str.charCodeAt(i)); }
+  function u32(off, v) { view.setUint32(off, v, true); }
+  function u16(off, v) { view.setUint16(off, v, true); }
+  w(0, 'RIFF');
+  u32(4, 36 + samples.length * 2);
+  w(8, 'WAVE');
+  w(12, 'fmt ');
+  u32(16, 16);
+  u16(20, 1);
+  u16(22, 1);
+  u32(24, sampleRate);
+  u32(28, sampleRate * 2);
+  u16(32, 2);
+  u16(34, 16);
+  w(36, 'data');
+  u32(40, samples.length * 2);
+  let offset = 44;
+  for (let i = 0; i < samples.length; i++) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    offset += 2;
+  }
+  return new Blob([buf], { type: 'audio/wav' });
+}
+
+// ---- Controls ----
+recBtn.addEventListener('mousedown', startRecording);
+recBtn.addEventListener('mouseup',   stopRecording);
+recBtn.addEventListener('mouseleave', () => { if (recording) stopRecording(); });
+recBtn.addEventListener('touchstart', e => { e.preventDefault(); startRecording(); }, { passive: false });
+recBtn.addEventListener('touchend',   e => { e.preventDefault(); stopRecording(); }, { passive: false });
+</script>
+</body>
+</html>

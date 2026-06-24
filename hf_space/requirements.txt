@@ -1,0 +1,10 @@
+flask
+flask-cors
+transformers
+librosa
+soundfile
+sqlalchemy
+pymysql
+python-dotenv
+huggingface_hub
+accelerate
