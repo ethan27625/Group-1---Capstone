@@ -38,12 +38,12 @@ This branch contains the frontend/UI and model-integration work for Sound Sense,
 │   │   ├── components/
 │   │   │   ├── EmotionTile.jsx   One emotion cell: emoji, label, confidence bar, rank ring
 │   │   │   ├── MicButton.jsx     Circular glass mic button with recording pulse animation
-│   │   │   ├── ProgressBar.jsx   10-second listening progress bar with a live counter
+│   │   │   ├── ProgressBar.jsx   5-second listening progress bar with a live counter
 │   │   │   └── ResultsPanel.jsx  Top-3 ranked results with an empty state
 │   │   ├── hooks/
-│   │   │   └── useRecorder.js    Owns MediaRecorder: permission, 10s auto-stop, cleanup
+│   │   │   └── useRecorder.js    Owns MediaRecorder: permission, 5s auto-stop, cleanup
 │   │   └── lib/
-│   │       ├── emotions.js       The 7 emotion definitions (key, label, emoji) + ranking
+│   │       ├── emotions.js       The 6 emotion definitions (key, label, emoji) + ranking
 │   │       └── predictEmotion.js Single integration point with the backend (see below)
 │   └── package.json
 │
@@ -58,8 +58,8 @@ The `frontend/` app is a React 19 + Vite single-page UI, styled with a "Calm Cla
 
 The UI is a single state machine with four states, driven from `App.jsx`:
 
-1. **Idle** — mic button ready, all seven emotion tiles at 0%, results panel shows an empty state.
-2. **Recording** — mic button pulses, the progress bar fills over a 10-second window with a live counter, capped by `useRecorder`'s auto-stop (or an early second tap).
+1. **Idle** — mic button ready, all six emotion tiles at 0%, results panel shows an empty state.
+2. **Recording** — mic button pulses, the progress bar fills over a 5-second window with a live counter, capped by `useRecorder`'s auto-stop (or an early second tap). The window matches the model's training data: it was trained on 1–5 second clips and the backend does not trim input, so longer recordings are out-of-distribution.
 3. **Analyzing** — emotion tiles show a loading shimmer while the recorded clip is sent to the backend.
 4. **Result** — tiles animate to their confidence values, the top 3 get a graded ring (full/partial/faint), and the results panel lists the top 3 ranked emotions.
 
@@ -86,7 +86,7 @@ What that function does:
 3. **Transforms the response.** The backend replies with fractional probabilities and Capitalized class names, e.g. `{"probabilities": {"Angry": 0.6123, "Happy": 0.031, ...}}`. This is converted into lowercase integer percentages (`{angry: 61, happy: 3, ...}`) matching what the tile and results components expect.
 4. **Fails gracefully.** If the fetch throws (server not running) or returns a non-OK status, `predictEmotion` throws an `Error` with a plain-language message that `App.jsx` surfaces inline, rather than leaving the UI stuck on "Analyzing…".
 
-The model classifies **6 emotions** — Angry, Disgusted, Fearful, Happy, Neutral, Sad. It does not score Surprised (the cleaning notebook in this branch dropped that class from training due to severe imbalance), so the Surprised tile always reads 0%.
+The model classifies **6 emotions** — Angry, Disgusted, Fearful, Happy, Neutral, Sad — matching the classes retained in this branch's cleaning notebook (Surprised was dropped from training due to severe class imbalance, and the frontend grid only ever renders these 6).
 
 Model weights live in `backend/w2v2_ser_best/` but are excluded from git via `.gitignore` because of their size. To run the backend locally, place the trained model files (`config.json`, `preprocessor_config.json`, and the weights file — `model.safetensors` or `pytorch_model.bin`) directly inside `backend/w2v2_ser_best/`.
 
