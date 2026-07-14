@@ -18,10 +18,9 @@
  *
  *   {
  *     angry: 4, disgusted: 2, fearful: 6, happy: 61,
- *     neutral: 18, sad: 3, surprised: 6
+ *     neutral: 18, sad: 9
  *   }
  *
- *   Note: the current model has no "Surprised" class, so `surprised` is 0.
  *   Throws Error with a user-friendly message if the backend is unreachable.
  * ─────────────────────────────────────────────────────────────────────────────
  */
@@ -35,7 +34,6 @@ export const EMOTION_KEYS = [
   'happy',
   'neutral',
   'sad',
-  'surprised',
 ];
 
 export async function predictEmotion(audioBlob) {
@@ -62,8 +60,7 @@ export async function predictEmotion(audioBlob) {
 
 /**
  * Backend response → UI shape: {"Angry": 0.6123, ...} fractions with
- * Capitalized keys become lowercase integer percentages. Emotions the
- * model doesn't score (Surprised) default to 0.
+ * Capitalized keys become lowercase integer percentages.
  */
 function toPercentages(probabilities) {
   const scores = {};

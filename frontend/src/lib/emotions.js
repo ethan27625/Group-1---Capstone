@@ -1,4 +1,4 @@
-// The 7 emotions Sound Sense classifies, in display order.
+// The 6 emotions Sound Sense classifies, in display order.
 export const EMOTIONS = [
   { key: 'angry', label: 'Angry', emoji: '😠' },
   { key: 'disgusted', label: 'Disgusted', emoji: '🤢' },
@@ -6,7 +6,6 @@ export const EMOTIONS = [
   { key: 'happy', label: 'Happy', emoji: '😄' },
   { key: 'neutral', label: 'Neutral', emoji: '😐' },
   { key: 'sad', label: 'Sad', emoji: '😢' },
-  { key: 'surprised', label: 'Surprised', emoji: '😲' },
 ];
 
 /** Emotion keys ranked by score, highest first. */

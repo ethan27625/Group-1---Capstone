@@ -136,17 +136,17 @@ h2 {
 
 .analysis__grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 0.75rem;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 640px) {
   .analysis__grid {
-    grid-template-columns: repeat(4, 1fr); /* wraps 4 + 3 */
+    grid-template-columns: repeat(3, 1fr); /* wraps 3 + 3 */
   }
 }
 
-/* Keep long labels ("Disgusted", "Surprised") inside narrow tiles */
+/* Keep long labels ("Disgusted") inside narrow tiles */
 @media (max-width: 480px) {
   .analysis {
     padding: 1.5rem 1rem;
