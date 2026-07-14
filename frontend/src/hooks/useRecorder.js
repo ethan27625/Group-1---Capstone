@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export const RECORD_DURATION_MS = 10_000;
+export const RECORD_DURATION_MS = 5_000;
 
 /**
  * Owns the browser microphone lifecycle: permission, MediaRecorder,

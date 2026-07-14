@@ -1,8 +1,8 @@
 import { RECORD_DURATION_MS } from '../hooks/useRecorder';
 
 /**
- * The 10-second listening window: status label, fill bar, and a live
- * mono counter ("3.2s / 10s"). Fill animates via CSS width transition.
+ * The 5-second listening window: status label, fill bar, and a live
+ * mono counter ("3.2s / 5s"). Fill animates via CSS width transition.
  */
 export default function ProgressBar({ isRecording, elapsedMs }) {
   const pct = Math.min((elapsedMs / RECORD_DURATION_MS) * 100, 100);

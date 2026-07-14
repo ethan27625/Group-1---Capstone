@@ -59,7 +59,7 @@ export default function App() {
           <div className="analysis__header">
             <h1 className="analysis__title">Emotion analysis</h1>
             <p className="analysis__subtitle">
-              Speak for up to 10 seconds — confidence per emotion updates after each take.
+              Speak for up to 5 seconds — confidence per emotion updates after each take.
             </p>
           </div>
           <div className="analysis__grid" role="list">

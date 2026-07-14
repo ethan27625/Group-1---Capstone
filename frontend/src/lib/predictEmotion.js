@@ -9,7 +9,8 @@
  *
  * INPUT
  *   audioBlob : Blob — raw audio captured from the browser microphone via
- *               MediaRecorder (typically audio/webm;codecs=opus, ~10 seconds).
+ *               MediaRecorder (typically audio/webm;codecs=opus, ~5 seconds — the
+ *               model was trained on 1-5s clips and the backend does not trim).
  *               The backend decodes with soundfile, which can't read webm, so
  *               we re-encode to 16 kHz mono 16-bit PCM WAV before uploading.
  *
