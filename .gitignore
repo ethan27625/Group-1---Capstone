@@ -9,6 +9,10 @@ Notebooks/w2v2_ser_best/
 *.pt
 *.npz
 
+# Local SQLite db built by SQLCLEAN.ipynb — small, but reproducible from ../Emotions in a couple
+# of minutes, so each teammate builds their own instead of committing a binary file.
+Notebooks/ser_local.db
+
 # macOS junk
 .DS_Store
 
