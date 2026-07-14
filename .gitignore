@@ -1,1 +1,3 @@
 backend/w2v2_ser_best/
+backend/venv/
+backend/__pycache__/
