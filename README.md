@@ -5,62 +5,42 @@ This branch contains the frontend/UI and model-integration work for **Sound Sens
 The live demo is served by the FastAPI app in `backend/`, exposed publicly via ngrok during the presentation. A React frontend and a Hugging Face Spaces deployment package are also included as alternative surfaces.
 
 ## Folder / file map
+
+```
 .
-├── README_ethan.md                This file
-├── README.md                      Repo root readme (project name only)
-├── ethan_research.md              Research notes: what MFCCs are and why they're the standard
-│                                  feature extraction method for audio classification
+├── README.md                    # This file
+├── ethan_research.md            # MFCC feature extraction research notes
 │
 ├── EDA/
-│   └── ethan_eda.ipynb            Loads 12,798 files across 7 emotion folders (TESS/RAVDESS/
-│                                  CREMA-D/SAVEE), audits SAVEE folder labels (84.4% mislabeled
-│                                  by speaker, not emotion), audits per-corpus sample rates,
-│                                  visualizes 8 acoustic features per emotion, and runs a
-│                                  one-way ANOVA ranking 30 features by discrimination power
+│  └── ethan_eda.ipynb           # 12,798 clips: SAVEE audit, ANOVA ranking
 │
 ├── cleaning/
-│   └── ethan_cleaning.ipynb       Acts on the EDA conclusions: drops SAVEE (mislabeled),
-│                                  drops Surprised (severe imbalance, ~4.6% of data),
-│                                  quarantines corrupted/anomalous-duration files, and writes
-│                                  the cleaned 11,653-file manifest
+│  └── ethan_cleaning.ipynb      # Drops SAVEE/Surprised, cleans manifest
 │
-├── outputs/                       CSV outputs from the cleaning notebook
-│   ├── cleaned_manifest.csv       Final model-ready dataset (11,653 rows)
-│   └── quarantined_files.csv      73 files removed with reasons
+├── outputs/                     # CSV outputs from the cleaning notebook
+│  ├── cleaned_manifest.csv      # Final dataset manifest (11,653 rows)
+│  └── quarantined_files.csv     # 73 removed files with reasons
 │
-├── plots/                         14 figures from the EDA notebook (class distribution,
-│                                  waveforms, spectrograms, MFCCs, ANOVA ranking, etc.)
+├── plots/                       # 14 EDA figures (waveforms, spectrograms)
 │
 ├── Notebooks/
-│   └── CleanModel.ipynb           Reference: teammate's WavLM-large fine-tuning notebook
-│                                  (frozen conv encoder, LLRD, focal loss, cosine schedule).
-│                                  Not runnable here — depends on a local SQLite build not
-│                                  included in this branch
+│  └── CleanModel.ipynb          # Ref: teammate's WavLM fine-tuning notebook
 │
-├── backend/                       The live demo — FastAPI + WavLM model + embedded UI
-│   ├── emotion_app.py             FastAPI server: serves the single-page HTML/CSS/JS UI at /
-│   │                              and POST /predict. Features: required-name gate with
-│   │                              inline validation, opt-in consent checkbox for audio
-│   │                              saving, pulsing-dot + AnalyserNode wave-bars during
-│   │                              recording, 5-second countdown timer, results logged to
-│   │                              CSV with optional audio persisted to disk
-│   ├── clean_ser_best/            Model weights (gitignored, ~1.2GB). WavLMFor-
-│   │                              SequenceClassification, 6 classes (Angry, Disgusted,
-│   │                              Fearful, Happy, Neutral, Sad)
-│   ├── recordings/                Opt-in saved audio (gitignored)
-│   └── results.csv                Running prediction log (gitignored)
+├── backend/                     # Live demo — FastAPI + WavLM + embedded UI
+│  ├── emotion_app.py            # FastAPI server, UI, and /predict route
+│  ├── clean_ser_best/           # Model weights (gitignored, ~1.2GB)
+│  ├── recordings/               # Opt-in saved audio (gitignored)
+│  └── results.csv               # Running prediction log (gitignored)
 │
-├── frontend/                      React + Vite alternative UI (not wired to the live demo)
-│   └── src/                       App.jsx state machine, useRecorder hook, emotion tiles,
-│                                  mic button, progress bar, results panel — Calm Clarity
-│                                  design language (indigo gradient, glass mic button)
+├── frontend/                    # React + Vite alt UI (not wired to demo)
+│  └── src/                      # State machine, recorder hook, UI parts
 │
-└── hf_space/                      Hugging Face Spaces deployment package (unused in demo,
-included as production-ready artifact)
-├── app.py                     Mirror of backend/emotion_app.py with CORS open to "*"
-├── Dockerfile                 python:3.11-slim, CPU-only torch
-├── requirements.txt           fastapi, uvicorn, torch, transformers, librosa, etc.
-└── README.md                  HF Spaces config + deploy notes
+└── hf_space/                    # Hugging Face Spaces deployment package
+   ├── app.py                    # Mirror of emotion_app.py, CORS open
+   ├── Dockerfile                # python:3.11-slim, CPU-only torch
+   ├── requirements.txt          # fastapi, uvicorn, torch, transformers
+   └── README.md                 # HF Spaces config + deploy notes
+```
 
 ## Running the demo
 
