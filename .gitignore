@@ -12,3 +12,5 @@ hf_space/results.csv
 # Opt-in saved voice recordings — never in git
 backend/recordings/
 hf_space/recordings/
+
+.DS_Store
