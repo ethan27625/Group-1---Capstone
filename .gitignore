@@ -1,3 +1,14 @@
 backend/w2v2_ser_best/
+backend/clean_ser_best/
 backend/venv/
 backend/__pycache__/
+hf_space/w2v2_ser_best/
+hf_space/clean_ser_best/
+
+# Result logs — participant names, keep out of git
+backend/results.csv
+hf_space/results.csv
+
+# Opt-in saved voice recordings — never in git
+backend/recordings/
+hf_space/recordings/
